@@ -80,7 +80,7 @@ class Application:
                 id INT PRIMARY KEY,
                 nome TEXT NOT NULL,
                 matricula TEXT NOT NULL,
-                curso_id INTEGER NOT NULL,
+                curso_id INTEGER,
                 CONSTRAINT fk_cursos FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE SET NULL
             );
         """)
@@ -155,53 +155,9 @@ class Application:
 
         self.table.place(x=10, y=80, width=980, height=480)
 
-        self.table.bind("<Double-1>", self.OnDoubleClickTable)
-        self.table.bind("<Button-1>", self.OnClickTable)
-        self.table.bind("<Button-3>", self.show_context_menu)
-
-    def show_context_menu(self, event):
-        context_menu = tk.Menu(root, tearoff=0)
-        context_menu.tk_popup(event.x_root, event.y_root)
-        context_menu.add_command(label="Atualizar", command=self.preencher_tabela_alunos)
-
-    def OnDoubleClickTable(self, event):
-        row_id = self.table.identify_row(event.y)
-        column_id = self.table.identify_column(event.x)
-
-        if not row_id:
-            return
-
-        if column_id == "#5" or column_id == "#1":
-            return
-
-        col_index = int(column_id[1:]) - 1
-        row_values = self.table.item(row_id, 'values')
-        if 0 <= col_index < len(row_values):
-            cell_value = row_values[col_index]
-        else:
-            cell_value = None
-
-        column = self.table.heading(column_id)["text"]
-
-        popup = EditarAlunoPopup(self.root, column, cell_value)
-        if popup.novo_valor is not None and popup.novo_valor:
-            self.editar_aluno(row_values[0], column_id, row_id, popup.novo_valor)
-    
-    def OnClickTable(self, event):
-        row_id = self.table.identify_row(event.y)
-        column_id = self.table.identify_column(event.x)
-
-        if not row_id:
-            return
-
-        if column_id != "#5":
-            return
-        
-        row_values = self.table.item(row_id, 'values')
-
-        self.table.delete(row_id)
-        self.remover_aluno(row_values[0])
-        self.remover_nota_pelo_aluno_id(row_values[0])
+        self.table.bind("<Double-1>", self.evento_duplo_click_tabela_alunos)
+        self.table.bind("<Button-1>", self.evento_click_tabela_alunos)
+        self.table.bind("<Button-3>", self.mostrar_pagina_aluno_menu)
 
     def criar_pagina_cursos(self):
         tk.Label(self.frame2, text="Curso:", bg="pink").place(x=10, y=10, height=20)
@@ -221,6 +177,10 @@ class Application:
         self.table_cursos.column("col33", anchor=tk.CENTER, width=40)
 
         self.table_cursos.place(x=10, y=80, width=980, height=480)
+
+        self.table_cursos.bind("<Double-1>", self.evento_duplo_click_tabela_cursos)
+        self.table_cursos.bind("<Button-1>", self.evento_click_tabela_cursos)
+        self.table_cursos.bind("<Button-3>", self.mostrar_pagina_cursos_menu)
 
     def criar_pagina_notas(self):
         tk.Label(self.frame3, text="Matrícula:", bg="pink").place(x=10, y=10, height=20)
@@ -253,6 +213,142 @@ class Application:
 
         self.table_notas.place(x=10, y=80, width=980, height=480)
 
+        self.table_notas.bind("<Double-1>", self.evento_duplo_click_tabela_notas)
+        self.table_notas.bind("<Button-1>", self.evento_click_tabela_notas)
+        self.table_notas.bind("<Button-3>", self.mostrar_pagina_notas_menu)
+
+    def mostrar_pagina_aluno_menu(self, event):
+        context_menu = tk.Menu(self.root, tearoff=0)
+        context_menu.tk_popup(event.x_root, event.y_root)
+        context_menu.add_command(label="Atualizar", command=self.preencher_tabela_alunos)
+
+    def mostrar_pagina_cursos_menu(self, event):
+        context_menu = tk.Menu(self.root, tearoff=0)
+        context_menu.tk_popup(event.x_root, event.y_root)
+        context_menu.add_command(label="Atualizar", command=self.preencher_tabela_cursos)
+
+    def mostrar_pagina_notas_menu(self, event):
+        context_menu = tk.Menu(self.root, tearoff=0)
+        context_menu.tk_popup(event.x_root, event.y_root)
+        context_menu.add_command(label="Atualizar", command=self.preencher_tabela_notas)
+
+    def evento_duplo_click_tabela_alunos(self, event):
+        row_id = self.table.identify_row(event.y)
+        column_id = self.table.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id == "#5" or column_id == "#1":
+            return
+
+        col_index = int(column_id[1:]) - 1
+        row_values = self.table.item(row_id, 'values')
+        if 0 <= col_index < len(row_values):
+            cell_value = row_values[col_index]
+        else:
+            cell_value = None
+
+        column = self.table.heading(column_id)["text"]
+
+        popup = EditarAlunoPopup(self.root, column, cell_value)
+        if popup.novo_valor is not None and popup.novo_valor:
+            self.editar_aluno(row_values[0], column_id, row_id, popup.novo_valor)
+    
+    def evento_click_tabela_alunos(self, event):
+        row_id = self.table.identify_row(event.y)
+        column_id = self.table.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id != "#5":
+            return
+        
+        row_values = self.table.item(row_id, 'values')
+
+        self.table.delete(row_id)
+        self.remover_aluno(row_values[0])
+        self.remover_nota_pelo_aluno_id(row_values[0])
+
+    def evento_duplo_click_tabela_cursos(self, event):
+        row_id = self.table_cursos.identify_row(event.y)
+        column_id = self.table_cursos.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id == "#3" or column_id == "#1":
+            return
+
+        col_index = int(column_id[1:]) - 1
+        row_values = self.table_cursos.item(row_id, 'values')
+        if 0 <= col_index < len(row_values):
+            cell_value = row_values[col_index]
+        else:
+            cell_value = None
+
+        column = self.table_cursos.heading(column_id)["text"]
+
+        popup = EditarAlunoPopup(self.root, column, cell_value)
+        if popup.novo_valor is not None and popup.novo_valor:
+            self.editar_curso(row_values[0], column_id, row_id, popup.novo_valor)
+    
+    def evento_click_tabela_cursos(self, event):
+        row_id = self.table_cursos.identify_row(event.y)
+        column_id = self.table_cursos.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id != "#3":
+            return
+        
+        row_values = self.table_cursos.item(row_id, 'values')
+
+        self.table_cursos.delete(row_id)
+        self.remover_curso(row_values[0])
+        #self.remover_nota_pelo_aluno_id(row_values[0])
+
+    def evento_duplo_click_tabela_notas(self, event):
+        row_id = self.table_notas.identify_row(event.y)
+        column_id = self.table_notas.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id == "#4" or column_id == "#1":
+            return
+
+        col_index = int(column_id[1:]) - 1
+        row_values = self.table_notas.item(row_id, 'values')
+        if 0 <= col_index < len(row_values):
+            cell_value = row_values[col_index]
+        else:
+            cell_value = None
+
+        column = self.table_notas.heading(column_id)["text"]
+
+        popup = EditarAlunoPopup(self.root, column, cell_value)
+        if popup.novo_valor is not None and popup.novo_valor:
+            self.editar_nota(row_values[0], column_id, row_id, popup.novo_valor)
+    
+    def evento_click_tabela_notas(self, event):
+        row_id = self.table_notas.identify_row(event.y)
+        column_id = self.table_notas.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id != "#4":
+            return
+        
+        row_values = self.table_notas.item(row_id, 'values')
+
+        self.table_notas.delete(row_id)
+        self.remover_nota(row_values[0])
+        #self.remover_nota_pelo_aluno_id(row_values[0])
+
     #
     #Funções para preencher as tabelas dos alunos, cursos e notas com os dados salvos no banco de dados
     #
@@ -267,6 +363,9 @@ class Application:
             self.table.insert("", tk.END, values=(aluno[0], aluno[1], aluno[2], aluno[3], "🗑️"))
 
     def preencher_tabela_cursos(self):
+        for item in self.table_cursos.get_children():
+            self.table_cursos.delete(item)
+
         self.cursor.execute("SELECT * FROM cursos")
         cursos = self.cursor.fetchall()
 
@@ -274,6 +373,9 @@ class Application:
             self.table_cursos.insert("", tk.END, values=(curso[0], curso[1], "🗑️"))
 
     def preencher_tabela_notas(self):
+        for item in self.table_notas.get_children():
+            self.table_notas.delete(item)
+
         self.cursor.execute("SELECT * FROM notas")
         notas = self.cursor.fetchall()
 
@@ -360,6 +462,30 @@ class Application:
 
         self.atualizar_lista_cursos()
 
+    def remover_curso(self, id):
+        self.cursor.execute("DELETE FROM cursos WHERE id = %s", (id,))
+        self.conexao.commit()
+
+        self.preencher_tabela_alunos()
+
+    def editar_curso(self, id, column_id, row_id, value):
+        values = []
+
+        for item_id in self.table_cursos.get_children():
+            values = list(self.table_cursos.item(item_id, 'values'))
+            if (values and values[0] == id):
+                values[int(column_id[1:]) - 1] = value
+                self.table_cursos.item(row_id, values=tuple(values))
+
+        try:
+            self.cursor.execute("UPDATE cursos SET nome = %s WHERE id = %s", (values[1], id,))
+            self.conexao.commit()
+        except:
+            messagebox.showerror("Error", "Erro ao tentar atualizar curso")
+            self.conexao.rollback()
+
+        self.atualizar_lista_cursos()
+
     def adicionar_notas(self):
         aluno_matricula = self.selected_option_matricula.get()
         nota = self.input_notas_nota.get()
@@ -386,14 +512,31 @@ class Application:
         self.cursor.execute("INSERT INTO notas(id, aluno_id, nota) VALUES (%s, %s, %s)", (id, aluno_id, nota))
         self.conexao.commit()
 
-    def remover_nota(self, id):
-        pass
-
     def remover_nota_pelo_aluno_id(self, aluno_id):
         for item_id in self.table_notas.get_children():
             values = self.table_notas.item(item_id, 'values')
             if (values and values[1] == aluno_id):
                 self.table_notas.delete(item_id)
+
+    def remover_nota(self, id):
+        self.cursor.execute("DELETE FROM notas WHERE id = %s", (id,))
+        self.conexao.commit()
+
+    def editar_nota(self, id, column_id, row_id, value):
+        values = []
+
+        for item_id in self.table_notas.get_children():
+            values = list(self.table_notas.item(item_id, 'values'))
+            if (values and values[0] == id):
+                values[int(column_id[1:]) - 1] = value
+                self.table_notas.item(row_id, values=tuple(values))
+
+        try:
+            self.cursor.execute("UPDATE notas SET aluno_id = %s, nota = %s WHERE id = %s", (values[1], values[2], id,))
+            self.conexao.commit()
+        except:
+            messagebox.showerror("Error", "Erro ao tentar atualizar nota")
+            self.conexao.rollback()
 
     #
     #Funções de suporte
