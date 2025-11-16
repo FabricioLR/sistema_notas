@@ -2,14 +2,47 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import psycopg2
+from tkinter import messagebox
+
+class EditarAlunoPopup:
+    def __init__(self, parent, column, value):
+        self.popup = tk.Toplevel(parent)
+        self.popup.title("Editar aluno")
+        self.popup.geometry("300x150")
+        self.popup.grid_columnconfigure(0, weight=1)
+
+        self.novo_valor = None
+
+        tk.Label(self.popup, text=column, anchor="w").grid(row=0, column=0, padx=5, pady=(10, 0), sticky="ew")
+        self.novo_valor_entry = tk.Entry(self.popup, textvariable=tk.StringVar(value=value))
+        self.novo_valor_entry.grid(row=1, column=0, padx=5, sticky="ew")
+        frame = tk.Frame(self.popup)
+        frame.grid(row=2, column=0, padx=5, pady=(30, 5), sticky="ew")
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=0)
+        frame.grid_columnconfigure(2, weight=0)
+        frame.grid_columnconfigure(3, weight=1)
+        tk.Button(frame, text="Cancelar", command=self.cancelar, cursor="hand1").grid(row=0, column=1, sticky="ew")
+        tk.Button(frame, text="Salvar", command=self.salvar, cursor="hand1").grid(row=0, column=2, sticky="ew")
+
+        parent.wait_window(self.popup)
+
+    def cancelar(self):
+        self.novo_valor = None
+        self.popup.destroy()
+
+    def salvar(self):
+        self.novo_valor = self.novo_valor_entry.get()
+        self.popup.destroy()
 
 class Application:
     #Função Inicial da aplicação. Executa as demais funções de criação de interface, inicialização do banco de dados e preenchimento de dados
     def __init__(self, root=None):
         #Definindo o título e tamanho da janela que será criada
-        root.title("Sistema de notas")
-        root.geometry("1000x600")
-        root.resizable(False, False)
+        self.root = root
+        self.root.title("Sistema de notas")
+        self.root.geometry("1000x600")
+        self.root.resizable(False, False)
 
         #Executando função de conexão com o banco de dados e crianda as tabelas do sistema
         self.conexao_db()
@@ -17,7 +50,7 @@ class Application:
 
         #Executando as funções responsáveis por adicionar os items à interface
         #Criando as tabs(alunos, cursos e notas) e preenchendo com widgtes(Entry, Button, Label, TreeView)
-        self.criar_paginas(root)
+        self.criar_paginas(self.root)
         self.criar_pagina_alunos()
         self.criar_pagina_cursos()
         self.criar_pagina_notas()
@@ -48,7 +81,7 @@ class Application:
                 nome TEXT NOT NULL,
                 matricula TEXT NOT NULL,
                 curso_id INTEGER NOT NULL,
-                CONSTRAINT fk_cursos FOREIGN KEY (curso_id) REFERENCES cursos(id)
+                CONSTRAINT fk_cursos FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE SET NULL
             );
         """)
         
@@ -57,7 +90,7 @@ class Application:
                 id INTEGER PRIMARY KEY,
                 aluno_id INTEGER NOT NULL,
                 nota REAL NOT NULL CHECK (nota >= 0 AND nota <= 10),
-                CONSTRAINT fk_alunos FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+                CONSTRAINT fk_alunos FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE
             );
         """)
 
@@ -85,9 +118,9 @@ class Application:
         notebook.add(self.frame3, text='Notas')
 
     def criar_pagina_alunos(self):
-        tk.Label(self.frame1, text="Nome: ", width=25, anchor="w", bg="pink").grid(row=0, column=0)
-        tk.Label(self.frame1, text="Matrícula: ", width=25, anchor="w", bg="pink").grid(row=0, column=1)
-        tk.Label(self.frame1, text="Curso: ", width=25, anchor="w", bg="pink").grid(row=0, column=2)
+        tk.Label(self.frame1, text="Nome: ", width=25, anchor="w", bg="pink").grid(row=0, column=0, pady=(10, 0))
+        tk.Label(self.frame1, text="Matrícula: ", width=25, anchor="w", bg="pink").grid(row=0, column=1, pady=(10, 0))
+        tk.Label(self.frame1, text="Curso: ", width=29, anchor="w", bg="pink").grid(row=0, column=2, pady=(10, 0))
 
         self.input_alunos_nome = tk.Entry(self.frame1, width=25)
         self.input_alunos_matricula = tk.Entry(self.frame1, width=25)
@@ -102,13 +135,13 @@ class Application:
 
         self.input_alunos_curso.config(width=25, cursor="hand2")
 
-        tk.Button(self.frame1, width=10, text="Adicionar", command=self.adicionar_aluno, cursor="hand2").grid(row=1, column=3, padx=(20, 5), pady=5)
+        tk.Button(self.frame1, width=10, text="Adicionar", command=self.adicionar_aluno, cursor="hand2").grid(row=1, column=3, padx=(20, 5), pady=(0, 5))
 
-        self.input_alunos_nome.grid(row=1, column=0, padx=5, pady=5)
-        self.input_alunos_matricula.grid(row=1, column=1, padx=5, pady=5)
-        self.input_alunos_curso.grid(row=1, column=2, padx=5, pady=5)
+        self.input_alunos_nome.grid(row=1, column=0, padx=5, pady=(0, 5))
+        self.input_alunos_matricula.grid(row=1, column=1, padx=5, pady=(0, 5))
+        self.input_alunos_curso.grid(row=1, column=2, padx=5, pady=(0, 5))
 
-        self.table = ttk.Treeview(self.frame1, columns=("col1", "col2", "col3", "col4", "col5"), show='headings')
+        self.table = ttk.Treeview(self.frame1, columns=("col1", "col2", "col3", "col4", "col5"), show='headings', height=23)
 
         self.table.heading("col1", text="ID")
         self.table.heading("col2", text="NOME")
@@ -117,9 +150,57 @@ class Application:
         self.table.heading("col5", text="")
         
         self.table.column("col1", anchor=tk.CENTER, width=100)
-        self.table.column("col5", anchor=tk.CENTER, width=10, pg="pink")
+        self.table.column("col5", anchor=tk.CENTER, width=10)
 
         self.table.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky='we')
+
+        self.table.bind("<Double-1>", self.OnDoubleClickTable)
+        self.table.bind("<Button-1>", self.OnClickTable)
+        self.table.bind("<Button-3>", self.show_context_menu)
+
+    def show_context_menu(self, event):
+        context_menu = tk.Menu(root, tearoff=0)
+        context_menu.tk_popup(event.x_root, event.y_root)
+        context_menu.add_command(label="Atualizar", command=self.preencher_tabela_alunos)
+
+    def OnDoubleClickTable(self, event):
+        row_id = self.table.identify_row(event.y)
+        column_id = self.table.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id == "#5" or column_id == "#1":
+            return
+
+        col_index = int(column_id[1:]) - 1
+        row_values = self.table.item(row_id, 'values')
+        if 0 <= col_index < len(row_values):
+            cell_value = row_values[col_index]
+        else:
+            cell_value = None
+
+        column = self.table.heading(column_id)["text"]
+
+        popup = EditarAlunoPopup(self.root, column, cell_value)
+        if popup.novo_valor is not None and popup.novo_valor:
+            self.editar_aluno(row_values[0], column_id, row_id, popup.novo_valor)
+    
+    def OnClickTable(self, event):
+        row_id = self.table.identify_row(event.y)
+        column_id = self.table.identify_column(event.x)
+
+        if not row_id:
+            return
+
+        if column_id != "#5":
+            return
+        
+        row_values = self.table.item(row_id, 'values')
+
+        self.table.delete(row_id)
+        self.remover_aluno(row_values[0])
+        self.remover_nota_pelo_aluno_id(row_values[0])
 
     def criar_pagina_cursos(self):
         self.input_cursos_nome = tk.Entry(self.frame2, width=22)
@@ -165,11 +246,14 @@ class Application:
     #Funções para preencher as tabelas dos alunos, cursos e notas com os dados salvos no banco de dados
     #
     def preencher_tabela_alunos(self):
+        for item in self.table.get_children():
+            self.table.delete(item)
+
         self.cursor.execute("SELECT * FROM alunos")
         alunos = self.cursor.fetchall()
 
         for aluno in alunos:
-            self.table.insert("", tk.END, values=(aluno[0], aluno[1], aluno[2], aluno[3], "X"))
+            self.table.insert("", tk.END, values=(aluno[0], aluno[1], aluno[2], aluno[3], "🗑️"))
 
     def preencher_tabela_cursos(self):
         self.cursor.execute("SELECT * FROM cursos")
@@ -202,20 +286,45 @@ class Application:
 
         self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (matricula_aluno,))
         if (self.cursor.fetchone() != None):
-            print("Matricula já existe!")
+            messagebox.showerror("Error", "Matrícula já existe")
             return
 
         id = random.randint(0, 100000)
 
         curso_id = self.curso_nome_para_curso_id(curso_aluno)
 
-        self.table.insert("", tk.END, values=(id, nome_aluno, matricula_aluno, curso_id))
+        self.table.insert("", tk.END, values=(id, nome_aluno, matricula_aluno, curso_id, "🗑️"))
 
         self.cursor.execute("INSERT INTO alunos(id, nome, matricula, curso_id) VALUES (%s, %s, %s, %s)", (id, nome_aluno, matricula_aluno, curso_id))
         self.conexao.commit()
 
         self.atualizar_lista_matriculas()
 
+    def remover_aluno(self, id):
+        self.cursor.execute("DELETE FROM alunos WHERE id = %s", (id,))
+        self.conexao.commit()
+
+        self.preencher_tabela_notas()
+
+    def editar_aluno(self, id, column_id, row_id, value):
+        values = []
+
+        for item_id in self.table.get_children():
+            values = list(self.table.item(item_id, 'values'))
+            if (values and values[0] == id):
+                values[int(column_id[1:]) - 1] = value
+                self.table.item(row_id, values=tuple(values))
+
+        try:
+            self.cursor.execute("UPDATE alunos SET nome = %s, matricula = %s, curso_id = %s WHERE id = %s", (values[1], values[2], values[3], id,))
+            self.conexao.commit()
+        except:
+            messagebox.showerror("Error", "Erro ao tentar atualizar aluno")
+            self.conexao.rollback()
+
+        self.atualizar_lista_matriculas()
+
+    
     def adicionar_curso(self):
         nome_curso = self.input_cursos_nome.get()
        
@@ -265,6 +374,15 @@ class Application:
 
         self.cursor.execute("INSERT INTO notas(id, aluno_id, nota) VALUES (%s, %s, %s)", (id, aluno_id, nota))
         self.conexao.commit()
+
+    def remover_nota(self, id):
+        pass
+
+    def remover_nota_pelo_aluno_id(self, aluno_id):
+        for item_id in self.table_notas.get_children():
+            values = self.table_notas.item(item_id, 'values')
+            if (values and values[1] == aluno_id):
+                self.table_notas.delete(item_id)
 
     #
     #Funções de suporte
