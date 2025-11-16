@@ -107,20 +107,18 @@ class Application:
         self.frame2 = tk.Frame(notebook)
         self.frame3 = tk.Frame(notebook)
 
-
         self.frame1.configure(background="pink")
         self.frame2.configure(background="pink")
         self.frame3.configure(background="pink")
     
-
         notebook.add(self.frame1, text='Alunos')
         notebook.add(self.frame2, text='Cursos')
         notebook.add(self.frame3, text='Notas')
 
     def criar_pagina_alunos(self):
-        tk.Label(self.frame1, text="Nome: ", width=25, anchor="w", bg="pink").grid(row=0, column=0, pady=(10, 0))
-        tk.Label(self.frame1, text="Matrícula: ", width=25, anchor="w", bg="pink").grid(row=0, column=1, pady=(10, 0))
-        tk.Label(self.frame1, text="Curso: ", width=29, anchor="w", bg="pink").grid(row=0, column=2, pady=(10, 0))
+        tk.Label(self.frame1, text="Nome: ", width=25, anchor="w", bg="pink").place(x=10, y=10, width=250, height=20)
+        tk.Label(self.frame1, text="Matrícula: ", width=25, anchor="w", bg="pink").place(x=260, y=10, width=250, height=20)
+        tk.Label(self.frame1, text="Curso: ", width=29, anchor="w", bg="pink").place(x=520, y=10, width=250, height=20)
 
         self.input_alunos_nome = tk.Entry(self.frame1, width=25)
         self.input_alunos_matricula = tk.Entry(self.frame1, width=25)
@@ -135,11 +133,11 @@ class Application:
 
         self.input_alunos_curso.config(width=25, cursor="hand2")
 
-        tk.Button(self.frame1, width=10, text="Adicionar", command=self.adicionar_aluno, cursor="hand2").grid(row=1, column=3, padx=(20, 5), pady=(0, 5))
+        tk.Button(self.frame1, width=10, text="Adicionar", command=self.adicionar_aluno, cursor="hand2").place(x=890, y=35, width=100, height=30)
 
-        self.input_alunos_nome.grid(row=1, column=0, padx=5, pady=(0, 5))
-        self.input_alunos_matricula.grid(row=1, column=1, padx=5, pady=(0, 5))
-        self.input_alunos_curso.grid(row=1, column=2, padx=5, pady=(0, 5))
+        self.input_alunos_nome.place(x=10, y=35, width=240, height=30)
+        self.input_alunos_matricula.place(x=260, y=35, width=240, height=30)
+        self.input_alunos_curso.place(x=520, y=35, width=240, height=30)
 
         self.table = ttk.Treeview(self.frame1, columns=("col1", "col2", "col3", "col4", "col5"), show='headings', height=23)
 
@@ -150,9 +148,12 @@ class Application:
         self.table.heading("col5", text="")
         
         self.table.column("col1", anchor=tk.CENTER, width=100)
-        self.table.column("col5", anchor=tk.CENTER, width=10)
+        self.table.column("col2", anchor="w", width=280)
+        self.table.column("col3", anchor="w", width=280)
+        self.table.column("col4", anchor="w", width=280)
+        self.table.column("col5", anchor=tk.CENTER, width=40)
 
-        self.table.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky='we')
+        self.table.place(x=10, y=80, width=980, height=480)
 
         self.table.bind("<Double-1>", self.OnDoubleClickTable)
         self.table.bind("<Button-1>", self.OnClickTable)
@@ -203,21 +204,26 @@ class Application:
         self.remover_nota_pelo_aluno_id(row_values[0])
 
     def criar_pagina_cursos(self):
-        self.input_cursos_nome = tk.Entry(self.frame2, width=22)
-        tk.Button(self.frame2, width=15, text="Adicionar", command=self.adicionar_curso).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(self.frame2, text="Curso:", bg="pink").place(x=10, y=10, height=20)
+        self.input_cursos_nome = tk.Entry(self.frame2)
+        tk.Button(self.frame2, text="Adicionar", command=self.adicionar_curso, cursor="hand1").place(x=890, y=35, width=100, height=30)
 
-        self.input_cursos_nome.grid(row=0, column=0, padx=5, pady=5)
+        self.input_cursos_nome.place(x=10, y=35, width=240, height=30)
 
-        self.table_cursos = ttk.Treeview(self.frame2, columns=("col1", "col2"), show='headings')
+        self.table_cursos = ttk.Treeview(self.frame2, columns=("col11", "col22", "col33"), show='headings')
 
-        self.table_cursos.heading("col1", text="ID")
-        self.table_cursos.heading("col2", text="NOME")
+        self.table_cursos.heading("col11", text="ID")
+        self.table_cursos.heading("col22", text="NOME")
+        self.table_cursos.heading("col33", text="")
         
-        self.table_cursos.column("col1", anchor=tk.CENTER, width=100)
+        self.table_cursos.column("col11", anchor=tk.CENTER, width=100)
+        self.table_cursos.column("col22", anchor="w", width=840)
+        self.table_cursos.column("col33", anchor=tk.CENTER, width=40)
 
-        self.table_cursos.grid(row=1, column=0, columnspan=4, padx=5, pady=5)
+        self.table_cursos.place(x=10, y=80, width=980, height=480)
 
     def criar_pagina_notas(self):
+        tk.Label(self.frame3, text="Matrícula:", bg="pink").place(x=10, y=10, height=20)
         matricula_alunos = self.listar_alunos_matricula()
         self.selected_option_matricula = tk.StringVar()
         if (len(matricula_alunos) > 0):
@@ -226,21 +232,26 @@ class Application:
         else:
             self.input_notas_aluno_id = tk.OptionMenu(self.frame3, self.selected_option_matricula, *matricula_alunos, value="")
 
+        tk.Label(self.frame3, text="Nota:", bg="pink").place(x=260, y=10, height=20)
         self.input_notas_nota = tk.Entry(self.frame3, width=22)
-        tk.Button(self.frame3, width=15, text="Adicionar", command=self.adicionar_notas).grid(row=0, column=3, padx=5, pady=5)
+        tk.Button(self.frame3, width=15, text="Adicionar", command=self.adicionar_notas).place(x=890, y=35, width=100, height=30)
 
-        self.input_notas_aluno_id.grid(row=0, column=0, padx=5, pady=5)
-        self.input_notas_nota.grid(row=0, column=1, padx=5, pady=5)
+        self.input_notas_aluno_id.place(x=10, y=35, height=30, width=240)
+        self.input_notas_nota.place(x=260, y=35, height=30, width=240)
 
-        self.table_notas = ttk.Treeview(self.frame3, columns=("col1", "col2", "col3"), show='headings')
+        self.table_notas = ttk.Treeview(self.frame3, columns=("ID", "ALUNO_ID", "NOTA", "EXCLUIR"), show='headings')
 
-        self.table_notas.heading("col1", text="ID")
-        self.table_notas.heading("col2", text="ALUNO_ID")
-        self.table_notas.heading("col3", text="NOTA")
-        
-        self.table_cursos.column("col1", anchor=tk.CENTER, width=100)
+        self.table_notas.heading("ID", text="ID")
+        self.table_notas.heading("ALUNO_ID", text="ALUNO_ID")
+        self.table_notas.heading("NOTA", text="NOTA")
+        self.table_notas.heading("EXCLUIR", text="")
 
-        self.table_notas.grid(row=1, column=0, columnspan=4, padx=5, pady=5)
+        self.table_notas.column("ID", width=100, anchor="center")
+        self.table_notas.column("ALUNO_ID", width=420, anchor="w")
+        self.table_notas.column("NOTA", width=420, anchor="w")
+        self.table_notas.column("EXCLUIR", width=40, anchor="center")
+
+        self.table_notas.place(x=10, y=80, width=980, height=480)
 
     #
     #Funções para preencher as tabelas dos alunos, cursos e notas com os dados salvos no banco de dados
@@ -260,14 +271,14 @@ class Application:
         cursos = self.cursor.fetchall()
 
         for curso in cursos:
-            self.table_cursos.insert("", tk.END, values=(curso[0], curso[1]))
+            self.table_cursos.insert("", tk.END, values=(curso[0], curso[1], "🗑️"))
 
     def preencher_tabela_notas(self):
         self.cursor.execute("SELECT * FROM notas")
         notas = self.cursor.fetchall()
 
         for nota in notas:
-            self.table_notas.insert("", tk.END, values=(nota[0], nota[1], nota[2]))
+            self.table_notas.insert("", tk.END, values=(nota[0], nota[1], nota[2], "🗑️"))
     
 
     #
@@ -342,7 +353,7 @@ class Application:
 
         print(id, nome_curso)
 
-        self.table_cursos.insert("", tk.END, values=(id, nome_curso))
+        self.table_cursos.insert("", tk.END, values=(id, nome_curso, "🗑️"))
 
         self.cursor.execute("INSERT INTO cursos(id, nome) VALUES (%s, %s)", (id, nome_curso))
         self.conexao.commit()
@@ -370,7 +381,7 @@ class Application:
 
         id = random.randint(0, 100000)
 
-        self.table_notas.insert("", tk.END, values=(id, aluno_id, nota))
+        self.table_notas.insert("", tk.END, values=(id, aluno_id, nota, "🗑️"))
 
         self.cursor.execute("INSERT INTO notas(id, aluno_id, nota) VALUES (%s, %s, %s)", (id, aluno_id, nota))
         self.conexao.commit()
