@@ -7,7 +7,7 @@ from tkinter import messagebox
 class EditarAlunoPopup:
     def __init__(self, parent, column, value):
         self.popup = tk.Toplevel(parent)
-        self.popup.title("Editar aluno")
+        self.popup.title("Editar " + str(column))
         self.popup.geometry("300x150")
         self.popup.grid_columnconfigure(0, weight=1)
 
@@ -34,6 +34,7 @@ class EditarAlunoPopup:
     def salvar(self):
         self.novo_valor = self.novo_valor_entry.get()
         self.popup.destroy()
+
 
 class Application:
     #Função Inicial da aplicação. Executa as demais funções de criação de interface, inicialização do banco de dados e preenchimento de dados
@@ -217,6 +218,9 @@ class Application:
         self.table_notas.bind("<Button-1>", self.evento_click_tabela_notas)
         self.table_notas.bind("<Button-3>", self.mostrar_pagina_notas_menu)
 
+    #
+    #Funções para criação do menu de atualização das 3 tabelas
+    #
     def mostrar_pagina_aluno_menu(self, event):
         context_menu = tk.Menu(self.root, tearoff=0)
         context_menu.tk_popup(event.x_root, event.y_root)
@@ -232,6 +236,9 @@ class Application:
         context_menu.tk_popup(event.x_root, event.y_root)
         context_menu.add_command(label="Atualizar", command=self.preencher_tabela_notas)
 
+    #
+    #Funções para criação dos eventos de click e duplo click das 3 tabelas
+    #
     def evento_duplo_click_tabela_alunos(self, event):
         row_id = self.table.identify_row(event.y)
         column_id = self.table.identify_column(event.x)
@@ -384,40 +391,48 @@ class Application:
     
 
     #
-    #Funções para adicionar aluno, curso e nota tanto nas tabelas da interface como no banco de dados
+    #Funções para adicionar, remove e atualizar aluno, curso e nota tanto nas tabelas da interface como no banco de dados
     #
     def adicionar_aluno(self):
-        nome_aluno = self.input_alunos_nome.get()
-        matricula_aluno = self.input_alunos_matricula.get()
-        curso_aluno = self.selected_option_curso.get()
+        try:
+            nome_aluno = str(self.input_alunos_nome.get())
+            matricula_aluno = int(self.input_alunos_matricula.get())
+            curso_aluno = int(self.selected_option_curso.get())
 
-        self.input_alunos_nome.delete(0, tk.END)
-        self.input_alunos_matricula.delete(0, tk.END)
+            self.input_alunos_nome.delete(0, tk.END)
+            self.input_alunos_matricula.delete(0, tk.END)
 
-        if (len(nome_aluno) == 0 or len(matricula_aluno) == 0 or len(curso_aluno) == 0):
-            return
+            if (len(nome_aluno) == 0 or len(matricula_aluno) == 0 or len(curso_aluno) == 0):
+                return
 
-        self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (matricula_aluno,))
-        if (self.cursor.fetchone() != None):
-            messagebox.showerror("Error", "Matrícula já existe")
-            return
+            self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (matricula_aluno,))
+            if (self.cursor.fetchone() != None):
+                messagebox.showerror("Error", "Matrícula já existe")
+                return
 
-        id = random.randint(0, 100000)
+            id = random.randint(0, 100000)
 
-        curso_id = self.curso_nome_para_curso_id(curso_aluno)
+            curso_id = self.curso_nome_para_curso_id(curso_aluno)
 
-        self.table.insert("", tk.END, values=(id, nome_aluno, matricula_aluno, curso_id, "🗑️"))
+            self.table.insert("", tk.END, values=(id, nome_aluno, matricula_aluno, curso_id, "🗑️"))
 
-        self.cursor.execute("INSERT INTO alunos(id, nome, matricula, curso_id) VALUES (%s, %s, %s, %s)", (id, nome_aluno, matricula_aluno, curso_id))
-        self.conexao.commit()
+            self.cursor.execute("INSERT INTO alunos(id, nome, matricula, curso_id) VALUES (%s, %s, %s, %s)", (id, nome_aluno, matricula_aluno, curso_id))
+            self.conexao.commit()
 
-        self.atualizar_lista_matriculas()
+            self.atualizar_lista_matriculas()
+        except (TypeError, ValueError):
+            messagebox.showerror("Error", "Dados inseridos são inválidos")
+        except:
+            messagebox.showerror("Error", "Erro ao adicionar aluno")
 
     def remover_aluno(self, id):
-        self.cursor.execute("DELETE FROM alunos WHERE id = %s", (id,))
-        self.conexao.commit()
+        try:
+            self.cursor.execute("DELETE FROM alunos WHERE id = %s", (id,))
+            self.conexao.commit()
 
-        self.preencher_tabela_notas()
+            self.preencher_tabela_notas()
+        except:
+            messagebox.showerror("Error", "Erro ao remover aluno")
 
     def editar_aluno(self, id, column_id, row_id, value):
         values = []
@@ -439,34 +454,42 @@ class Application:
 
     
     def adicionar_curso(self):
-        nome_curso = self.input_cursos_nome.get()
-       
-        self.input_cursos_nome.delete(0, tk.END)
-
-        if (len(nome_curso) == 0):
-            return
+        try:
+            nome_curso = str(self.input_cursos_nome.get())
         
-        self.cursor.execute("SELECT id FROM cursos WHERE nome = %s", (nome_curso,))
-        if (self.cursor.fetchone() != None):
-            print("curso ja existe")
-            return
+            self.input_cursos_nome.delete(0, tk.END)
 
-        id = random.randint(0, 100000)
+            if (len(nome_curso) == 0):
+                return
+            
+            self.cursor.execute("SELECT id FROM cursos WHERE nome = %s", (nome_curso,))
+            if (self.cursor.fetchone() != None):
+                print("curso ja existe")
+                return
 
-        print(id, nome_curso)
+            id = random.randint(0, 100000)
 
-        self.table_cursos.insert("", tk.END, values=(id, nome_curso, "🗑️"))
+            print(id, nome_curso)
 
-        self.cursor.execute("INSERT INTO cursos(id, nome) VALUES (%s, %s)", (id, nome_curso))
-        self.conexao.commit()
+            self.table_cursos.insert("", tk.END, values=(id, nome_curso, "🗑️"))
 
-        self.atualizar_lista_cursos()
+            self.cursor.execute("INSERT INTO cursos(id, nome) VALUES (%s, %s)", (id, nome_curso))
+            self.conexao.commit()
+
+            self.atualizar_lista_cursos()
+        except (TypeError, ValueError):
+            messagebox.showerror("Error", "Dados inseridos são inválidos")
+        except:
+            messagebox.showerror("Error", "Error ao adicionar curso")
 
     def remover_curso(self, id):
-        self.cursor.execute("DELETE FROM cursos WHERE id = %s", (id,))
-        self.conexao.commit()
+        try:
+            self.cursor.execute("DELETE FROM cursos WHERE id = %s", (id,))
+            self.conexao.commit()
 
-        self.preencher_tabela_alunos()
+            self.preencher_tabela_alunos()
+        except:
+            messagebox.showerror("Error", "Erro ao remover curso")
 
     def editar_curso(self, id, column_id, row_id, value):
         values = []
@@ -487,30 +510,35 @@ class Application:
         self.atualizar_lista_cursos()
 
     def adicionar_notas(self):
-        aluno_matricula = self.selected_option_matricula.get()
-        nota = self.input_notas_nota.get()
+        try:
+            aluno_matricula = int(self.selected_option_matricula.get())
+            nota = float(self.input_notas_nota.get())
 
-        self.input_notas_nota.delete(0, tk.END)
+            self.input_notas_nota.delete(0, tk.END)
 
-        aluno_id = self.matricula_aluno_para_id_aluno(aluno_matricula)
+            aluno_id = self.matricula_aluno_para_id_aluno(aluno_matricula)
 
-        print(aluno_matricula, aluno_id, nota)
+            print(aluno_matricula, aluno_id, nota)
 
-        self.cursor.execute("SELECT id FROM alunos WHERE id = %s", (aluno_id, ))
-        if (self.cursor.fetchone() == None):
-            print("Aluno inexistente")
-            return
-    
-        if (float(nota) < 0 or float(nota) > 10):
-            print("Insira uma nota válida!")
-            return
+            self.cursor.execute("SELECT id FROM alunos WHERE id = %s", (aluno_id, ))
+            if (self.cursor.fetchone() == None):
+                print("Aluno inexistente")
+                return
+        
+            if (float(nota) < 0 or float(nota) > 10):
+                print("Insira uma nota válida!")
+                return
 
-        id = random.randint(0, 100000)
+            id = random.randint(0, 100000)
 
-        self.table_notas.insert("", tk.END, values=(id, aluno_id, nota, "🗑️"))
+            self.table_notas.insert("", tk.END, values=(id, aluno_id, nota, "🗑️"))
 
-        self.cursor.execute("INSERT INTO notas(id, aluno_id, nota) VALUES (%s, %s, %s)", (id, aluno_id, nota))
-        self.conexao.commit()
+            self.cursor.execute("INSERT INTO notas(id, aluno_id, nota) VALUES (%s, %s, %s)", (id, aluno_id, nota))
+            self.conexao.commit()
+        except (TypeError, ValueError):
+            messagebox.showerror("Error", "Dados inseridos são inválidos")
+        except:
+            messagebox.showerror("Error", "Error ao adicionar nota")
 
     def remover_nota_pelo_aluno_id(self, aluno_id):
         for item_id in self.table_notas.get_children():
@@ -519,8 +547,11 @@ class Application:
                 self.table_notas.delete(item_id)
 
     def remover_nota(self, id):
-        self.cursor.execute("DELETE FROM notas WHERE id = %s", (id,))
-        self.conexao.commit()
+        try:
+            self.cursor.execute("DELETE FROM notas WHERE id = %s", (id,))
+            self.conexao.commit()
+        except:
+            messagebox.showerror("Error", "Erro ao remover nota")
 
     def editar_nota(self, id, column_id, row_id, value):
         values = []

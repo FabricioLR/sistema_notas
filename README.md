@@ -13,9 +13,10 @@ $python app.py
 ```
 
 ## Screenshots
-<img src="screenshots/pagina1.png" alt="drawing" width="500"/>
-<img src="screenshots/pagina2.png" alt="drawing" width="500"/>
-<img src="screenshots/pagina3.png" alt="drawing" width="500"/>
+<img src="screenshots/pagina1.png" alt="drawing" width="400"/>
+<img src="screenshots/pagina2.png" alt="drawing" width="400"/>
+<img src="screenshots/pagina3.png" alt="drawing" width="400"/>
+<img src="screenshots/editar_aluno.png" alt="drawing" width="400"/>
 
 
 ## Autores
