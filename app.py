@@ -402,8 +402,6 @@ class Application:
             self.input_alunos_nome.delete(0, tk.END)
             self.input_alunos_matricula.delete(0, tk.END)
 
-            print(nome_aluno, matricula_aluno, curso_aluno)
-
             if (len(nome_aluno) == 0 or matricula_aluno is None or len(curso_aluno) == 0):
                 return
 
@@ -423,10 +421,8 @@ class Application:
 
             self.atualizar_lista_matriculas()
         except (TypeError, ValueError) as e:
-            print(e)
             messagebox.showerror("Error", "Dados inseridos são inválidos")
         except Exception as e:
-            print(e)
             messagebox.showerror("Error", "Erro ao adicionar aluno")
 
     def remover_aluno(self, id):
@@ -470,7 +466,7 @@ class Application:
             
             self.cursor.execute("SELECT id FROM cursos WHERE nome = %s", (nome_curso,))
             if (self.cursor.fetchone() != None):
-                print("curso ja existe")
+                messagebox.showerror("Error", "Curso já existe")
                 return
 
             id = random.randint(0, 100000)
@@ -524,15 +520,13 @@ class Application:
 
             aluno_id = self.matricula_aluno_para_id_aluno(aluno_matricula)
 
-            print(aluno_matricula, aluno_id, nota)
-
             self.cursor.execute("SELECT id FROM alunos WHERE id = %s", (aluno_id, ))
             if (self.cursor.fetchone() == None):
-                print("Aluno inexistente")
+                messagebox.showerror("Error", "Aluno não existe")
                 return
         
             if (float(nota) < 0 or float(nota) > 10):
-                print("Insira uma nota válida!")
+                messagebox.showerror("Error", "Nota inválida. Precisa ser entre 0 e 10")
                 return
 
             id = random.randint(0, 100000)
