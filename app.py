@@ -397,15 +397,17 @@ class Application:
         try:
             nome_aluno = str(self.input_alunos_nome.get())
             matricula_aluno = int(self.input_alunos_matricula.get())
-            curso_aluno = int(self.selected_option_curso.get())
+            curso_aluno = str(self.selected_option_curso.get())
 
             self.input_alunos_nome.delete(0, tk.END)
             self.input_alunos_matricula.delete(0, tk.END)
 
-            if (len(nome_aluno) == 0 or len(matricula_aluno) == 0 or len(curso_aluno) == 0):
+            print(nome_aluno, matricula_aluno, curso_aluno)
+
+            if (len(nome_aluno) == 0 or matricula_aluno is None or len(curso_aluno) == 0):
                 return
 
-            self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (matricula_aluno,))
+            self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (str(matricula_aluno),))
             if (self.cursor.fetchone() != None):
                 messagebox.showerror("Error", "Matrícula já existe")
                 return
@@ -416,13 +418,15 @@ class Application:
 
             self.table.insert("", tk.END, values=(id, nome_aluno, matricula_aluno, curso_id, "🗑️"))
 
-            self.cursor.execute("INSERT INTO alunos(id, nome, matricula, curso_id) VALUES (%s, %s, %s, %s)", (id, nome_aluno, matricula_aluno, curso_id))
+            self.cursor.execute("INSERT INTO alunos(id, nome, matricula, curso_id) VALUES (%s, %s, %s, %s)", (id, nome_aluno, str(matricula_aluno), curso_id))
             self.conexao.commit()
 
             self.atualizar_lista_matriculas()
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as e:
+            print(e)
             messagebox.showerror("Error", "Dados inseridos são inválidos")
-        except:
+        except Exception as e:
+            print(e)
             messagebox.showerror("Error", "Erro ao adicionar aluno")
 
     def remover_aluno(self, id):
@@ -431,6 +435,8 @@ class Application:
             self.conexao.commit()
 
             self.preencher_tabela_notas()
+
+            self.atualizar_lista_matriculas()
         except:
             messagebox.showerror("Error", "Erro ao remover aluno")
 
@@ -469,8 +475,6 @@ class Application:
 
             id = random.randint(0, 100000)
 
-            print(id, nome_curso)
-
             self.table_cursos.insert("", tk.END, values=(id, nome_curso, "🗑️"))
 
             self.cursor.execute("INSERT INTO cursos(id, nome) VALUES (%s, %s)", (id, nome_curso))
@@ -488,6 +492,8 @@ class Application:
             self.conexao.commit()
 
             self.preencher_tabela_alunos()
+
+            self.atualizar_lista_cursos()
         except:
             messagebox.showerror("Error", "Erro ao remover curso")
 
@@ -597,7 +603,7 @@ class Application:
         return self.cursor.fetchone()[0]
     
     def matricula_aluno_para_id_aluno(self, matricula):
-        self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (matricula,))
+        self.cursor.execute("SELECT id FROM alunos WHERE matricula = %s", (str(matricula),))
         return self.cursor.fetchone()[0]
 
     #
